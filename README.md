@@ -1,4 +1,6 @@
 # Dict.cc-parsing
+
+### About
 Simple parser for Dict.cc dictionary. It was made and tested with the DE<>EN dictionary but should work for all dict.cc dictionaries.
 
 ### How to use it
