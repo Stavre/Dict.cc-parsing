@@ -18,3 +18,5 @@ dictionary -> string. path to txt file containing the dictionary
 multiprocessing -> boolean value. If true, the dictionary is split into chunks and each chunk is processed by a separate core. If false, the dictionary is parsed without any multiprocessing. Multiprocessing should be set to true only for large dictionaries.
 
 cores -> integer. Number of cores used. By default it is set to the number of cores present in the hardware. If cores <= 0 then cores=mp.cpu_count()
+
+### If multiprocessing is True, then the function must be used with if __name__ == '__main__': guard.
