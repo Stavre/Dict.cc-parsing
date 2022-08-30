@@ -4,9 +4,9 @@ import multiprocessing as mp
 
 from main import timereps
 
-def parse_function(df : pd.DataFrame):
-    # transform any unicode codes into unicode characters
 
+def parse_function(df: pd.DataFrame):
+    # transform any unicode codes into unicode characters
     for col in ["word", "translation", "grammar", "field"]:
         df[col] = df[col].str.replace(r'&#([0-9]+);', lambda x: chr(int(x.group(1), 10)), regex=True)
 
@@ -35,8 +35,7 @@ def parse_function(df : pd.DataFrame):
     return df
 
 
-def parse(dictionary : str, cores=mp.cpu_count()):
-
+def parse(dictionary: str, multiprocessing: bool = False, cores: int = mp.cpu_count()):
     skip_lines = 0
     # open file
     with open(dictionary, "r", encoding="utf-8") as file:
@@ -47,29 +46,40 @@ def parse(dictionary : str, cores=mp.cpu_count()):
                 break
             skip_lines = skip_lines + 1
 
-    df = pd.read_csv(dictionary, names=["word", "translation", "grammar", "field"] , delimiter="\t", skiprows=skip_lines)
+    df = pd.read_csv(dictionary, names=["word", "translation", "grammar", "field"], delimiter="\t", skiprows=skip_lines)
+    # Evey row should have four parts:
+    #      -> first column contains the word with or without any additional brackets
+    #      -> second column contains the translation of the word with or without any additional brackets
+    #      -> third column contains the word class (eg. noun, verb, etc)
+    #      -> fourth column may contain subject tags (eg. math. -> mathematics, chem. -> chemistry, etc)
+    # Every column may contain different elements contained in a set of brackets
+    # A summary of the brackets can be found below
 
-    if cores <= 0:
-        cores = 1
+    """
+    The following brackets were taken from the dict.cc website (https://contribute.dict.cc/guidelines/)
 
+    <angle> -> abbreviations/acronyms
+    [square] -> visible comments
+    (round) -> for optional parts
+    {curly} -> word class definitions
+    """
+    if multiprocessing is False:
+        r = parse_function(df)
+    else:
+        if cores <= 0:  # if the number of cores is invalid, set it to the number of hardware cores present
+            cores = mp.cpu_count()
 
-    chunks = np.array_split(df, cores, axis=0)
-    pool = mp.Pool(mp.cpu_count())
+        # split the dataframe into multiple chunks
+        chunks = np.array_split(df, cores, axis=0)
 
+        # create Pool
+        pool = mp.Pool(cores)
 
-    results =  pool.map(parse_function, chunks)
+        # store the list of results
+        results = pool.map(parse_function, chunks)
 
-    pool.close()
+        pool.close()
 
-
-    r = pd.concat(results, axis=0)
+        r = pd.concat(results, axis=0)
 
     return r
-
-
-
-if __name__ == '__main__':
-    #print(timereps(10, parse, "de_en_dictionary.txt"))
-    df = parse("de_en_dictionary.txt")
-    df.to_csv("new.csv", index=False)
-
