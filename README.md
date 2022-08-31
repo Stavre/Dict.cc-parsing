@@ -20,3 +20,6 @@ multiprocessing -> boolean value. If true, the dictionary is split into chunks a
 cores -> integer. Number of cores used. By default it is set to the number of cores present in the hardware. If cores <= 0 then cores=mp.cpu_count()
 
 ### If multiprocessing is True, then the function must be used with if __name__ == '__main__': guard.
+
+![fig](https://user-images.githubusercontent.com/31391614/187764703-e5aa984f-ef0f-4965-998e-484c48cafc07.png)
+
